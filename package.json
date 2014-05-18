@@ -1,0 +1,40 @@
+{
+  "name": "pimatic-coc",
+  "description": "pimatic plugin to communicate with a busware coc module.",
+  "keywords": [
+    "pimatic",
+    "coc"
+  ],
+  "author": {
+    "name": "Dirk Fischbach",
+    "email": "dirk@fischbachnet.de"
+  },
+  "main": "coc.coffee",
+  "files": [
+    "coc.coffee",
+    "README.md",
+    "coc-plugin-config-schema.coffee",
+    "coc-device-config-schema.coffee",
+    "cocinit.sh"
+  ],
+  "version": "0.1.0",
+  "private": false,
+  "dependencies": {
+    "serialport": "1.3.1"
+  },
+  "peerDependencies": {
+    "pimatic": ">0.7.x"
+  },
+  "engines": {
+    "node": ">0.8.x",
+    "npm": ">1.1.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/dfischbach/pimatic-coc.git"
+  },
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/dfischbach/pimatic-coc/issues"
+  }
+}
