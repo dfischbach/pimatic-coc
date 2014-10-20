@@ -1,38 +1,45 @@
-# Defines a `node-convict` config-schema and exports it.
-module.exports =
-
-COCSwitch:
-  id:
-    doc: "The id of a device"
-    format: String
-    default: "atHomeId"
-  name:
-    doc: "The name of a device"
-    format: String
-    default: "atHomeName"
-  commandOn:
-    doc: "The command string to send for on state"
-    format: String
-    default: null
-  commandOff:
-    doc: "The command string to send for off state"
-    format: String
-    default: null
-
-  COCSwitchFS20:
-    id:
-      doc: "The id of a device"
-      format: String
-      default: "atHomeId"
-    name:
-      doc: "The name of a device"
-      format: String
-      default: "atHomeName"
-    houseid:
-      doc: "The house code"
-      format: String
-      default: "2525"
-    deviceid:
-      doc: "The fs20 device id"
-      format: String
-      default: "00"
+module.exports = {
+  title: "coc device config schemas"
+  COCSwitch: {
+    title: "COCSwitch config options"
+    type: "object"
+    properties:
+      id:
+        description: "The id of a device"
+        type: "string"
+        default: "atHomeId"
+      name:
+        description: "The name of a device"
+        type: "string"
+        default: "atHomeName"
+      commandOn:
+        description: "The command string to send for on state"
+        type: "string"
+        default: null
+      commandOff:
+        description: "The command string to send for off state"
+        type: "string"
+        default: null
+  }
+  COCSwitchFS20: {
+    title: "COCSwitchFS20 config options"
+    type: "object"
+    properties:
+      id:
+        description: "The id of a device"
+        type: "string"
+        default: "atHomeId"
+      name:
+        description: "The name of a device"
+        type: "string"
+        default: "atHomeName"
+      houseid:
+        description: "The house code"
+        type: "string"
+        default: "2525"
+      deviceid:
+        description: "The fs20 device id"
+        type: "string"
+        default: "00"
+  }
+}

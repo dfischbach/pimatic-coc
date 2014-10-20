@@ -1,21 +1,15 @@
 
 module.exports = (env) ->
 
-  convict = env.require "convict"
-
-  # Require the [Q](https://github.com/kriskowal/q) promise library
-  Q = env.require 'q'
-
-  # Require the [cassert library](https://github.com/rhoot/cassert).
-  assert = env.require 'cassert'
+  convict   = env.require "convict"
+  Promise   = env.require 'bluebird'
+  assert    = env.require 'cassert'
+  execSync  = require 'execSync'
 
   # Require the [SerialPort] (https://github.com/voodootikigod/node-serialport)
   {SerialPort} = require 'serialport'
 
   _ = env.require 'lodash'
-
-  exec = Q.denodeify(require("child_process").exec)
-
 
   # the plugin class
   class COCPlugin extends env.plugins.Plugin
@@ -23,42 +17,34 @@ module.exports = (env) ->
     @transport
 
     init: (app, @framework, config) ->
-      @conf = convict _.cloneDeep(require("./coc-plugin-config-schema"))
+      env.logger.info "coc: init"
+      
+      execSync.run("sh ./node_modules/pimatic-coc/cocinit.sh")
 
-      @conf.load config
-      @conf.validate()
-
-      exec("sh ./node_modules/pimatic-coc/cocinit.sh").then( (streams) =>
-        stdout = streams[0]
-        stderr = streams[1]
-        env.logger.info stdout
-        env.logger.error stderr if stderr.length isnt 0
+      serialName = config.serialDeviceName
+      env.logger.info(
+        "coc: init with serial device name #{serialName}"
       )
 
-      serialName = @conf.get "serialDeviceName"
-      env.logger.info "coc: init with serial device name #{serialName}"
-
       @cmdReceivers = [];
-
       @transport = new COCTransport serialName, @receiveCommandCallback
 
+      deviceConfigDef = require("./coc-device-config-schema")
 
-    createDevice: (deviceConfig) ->
-      env.logger.info "coc: createDevice #{deviceConfig.id}"
-      return switch deviceConfig.class
-      when 'COCSwitch'
-        @framework.registerDevice(new COCSwitch deviceConfig)
-        true
-      when 'COCSwitchFS20'
-        @framework.registerDevice(new COCSwitchFS20 deviceConfig)
-        true
-        when 'COCSensorValue'
-          value = new COCSensorValue deviceConfig, @isDemo
-          @cmdReceivers.push value
-          @framework.registerDevice(value)
-          true
-        else
-          false
+      deviceClasses = [ 
+        COCSwitch,
+        COCSwitchFS20
+      ]
+
+      for Cl in deviceClasses
+        do (Cl) =>
+          @framework.deviceManager.registerDeviceClass(Cl.name, {
+            configDef: deviceConfigDef[Cl.name]
+            createCallback: (deviceConfig) =>
+              device = new Cl(deviceConfig)
+              return device
+          })
+
 
     sendCommand: (id, cmdString) ->
         @transport.sendCommand id, cmdString
@@ -83,7 +69,7 @@ module.exports = (env) ->
       @serial = new SerialPort serialPortName, baudrate: 38400, false
 
       @serial.open (err) ->
-        if ( err? )
+        if ( err != null )
           env.logger.info "open serialPort #{serialPortName} failed #{err}"
         else
           env.logger.info "open serialPort #{serialPortName}"
@@ -119,55 +105,44 @@ module.exports = (env) ->
       @serial.write(cmdString+'\n')
 
 
-# COCSwitch is a generic switch which works with on/off command strings
-class COCSwitch extends env.devices.PowerSwitch
+  # COCSwitch is a generic switch which works with on/off command strings
+  class COCSwitch extends env.devices.PowerSwitch
 
-  constructor: (deviceconfig) ->
-    @conf = convict _.cloneDeep(require("./coc-device-config-schema").COCSwitch)
-    @conf.load deviceconfig
-    @conf.validate()
-
-    @id = @conf.get "id"
-    @name = @conf.get "name"
-    @commandOn = @conf.get "commandOn"
-    @commandOff= @conf.get "commandOff"
-
-    super()
+    constructor: (@config) ->
+      @id = config.id
+      @name = config.name
+      @commandOn = config.commandOn
+      @commandOff= config.commandOff
+      super()
 
 
-  changeStateTo: (state) ->
-    if @_state is state then return Q true
-    else return Q.fcall =>
-      if state is on then cocPlugin.sendCommand @commandOn else cocPlugin.sendCommand @commandOff
-      @_setState state
+    changeStateTo: (state) ->
+      if @_state is state then return Promise.resolve true
+      else return Promise.try( =>
+        if state is on then cocPlugin.sendCommand @commandOn else cocPlugin.sendCommand @commandOff
+        @_setState state
+      )
 
 
   # COCSwitchFS20 controls FS20 devices
   class COCSwitchFS20 extends env.devices.PowerSwitch
 
-    constructor: (deviceconfig) ->
-      @conf = convict _.cloneDeep(require("./coc-device-config-schema").COCSwitchFS20)
-      @conf.load deviceconfig
-      @conf.validate()
-
-      @id = @conf.get "id"
-      @name = @conf.get "name"
-      @houseid = @conf.get "houseid"
-      @deviceid = @conf.get "deviceid"
-
+    constructor: (@config) ->
+      @id = config.id
+      @name = config.name
+      @houseid = config.houseid
+      @deviceid = config.deviceid
       super()
 
 
     changeStateTo: (state) ->
-      if @_state is state then return Q true
-      else return Q.fcall =>
-      #cmd = 'F '+@houseid+@deviceid
+      if @_state is state then return Promise.resolve true
+      else return Promise.try( =>
         cmd = 'F'+@houseid+@deviceid
         cocPlugin.sendCommand @id, (if state is on then cmd+'11' else cmd+'00')
         @_setState state
+      )
 
 
-
-
-  cocPlugin = new COCPlugin
+  cocPlugin = new COCPlugin()
   return cocPlugin
