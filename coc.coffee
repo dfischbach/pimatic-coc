@@ -18,16 +18,16 @@ module.exports = (env) ->
 
     init: (app, @framework, config) ->
       env.logger.info "coc: init"
-      
-      execSync.run("sh ./node_modules/pimatic-coc/cocinit.sh")
 
       serialName = config.serialDeviceName
-      env.logger.info(
-        "coc: init with serial device name #{serialName}"
-      )
+      env.logger.info("coc: init with serial device name #{serialName}@#{config.baudrate}, hardwareType #{config.hardwareType}")
+      
+      if config.hardwareType is "COC"
+        env.logger.info("running cocinit.sh")
+        execSync.run("sh ./node_modules/pimatic-coc/cocinit.sh")
 
       @cmdReceivers = [];
-      @transport = new COCTransport serialName, @receiveCommandCallback
+      @transport = new COCTransport serialName, config.baudrate, @receiveCommandCallback
 
       deviceConfigDef = require("./coc-device-config-schema")
 
@@ -63,10 +63,10 @@ module.exports = (env) ->
 
     @serial
 
-    constructor: (serialPortName, @receiveCommandHandler) ->
+    constructor: (serialPortName, baudrate, @receiveCommandHandler) ->
 
       @cmdString = ""
-      @serial = new SerialPort serialPortName, baudrate: 38400, false
+      @serial = new SerialPort serialPortName, baudrate: baudrate, false
 
       @serial.open (err) ->
         if ( err != null )
