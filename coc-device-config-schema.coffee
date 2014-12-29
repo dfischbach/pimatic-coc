@@ -41,5 +41,13 @@ module.exports = {
         description: "The fs20 device id"
         type: "string"
         default: "00"
+      commandOn:
+        description: "The command string to send for on state"
+        type: "string"
+        default: "11"
+      commandOff:
+        description: "The command string to send for off state"
+        type: "string"
+        default: "00"
   }
 }

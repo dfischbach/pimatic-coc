@@ -42,6 +42,8 @@ module.exports = (env) ->
             configDef: deviceConfigDef[Cl.name]
             createCallback: (deviceConfig) =>
               device = new Cl(deviceConfig)
+              if Cl in [COCSwitchFS20]
+                @cmdReceivers.push device
               return device
           })
 
@@ -69,14 +71,15 @@ module.exports = (env) ->
       @serial = new SerialPort serialPortName, baudrate: baudrate, false
 
       @serial.open (err) ->
-        if ( err != null )
+        if ( err? )
           env.logger.info "open serialPort #{serialPortName} failed #{err}"
         else
           env.logger.info "open serialPort #{serialPortName}"
 
 
-      @serial.on 'open', ->
-         @.write('echo\n');
+      @serial.on 'open', =>
+        # enable receive mode of coc
+        @serial.write('X01\n')
 
       @serial.on 'error', (err) ->
          env.logger.error "coc: serial error #{err}"
@@ -139,9 +142,32 @@ module.exports = (env) ->
       if @_state is state then return Promise.resolve true
       else return Promise.try( =>
         cmd = 'F'+@houseid+@deviceid
-        cocPlugin.sendCommand @id, (if state is on then cmd+'11' else cmd+'00')
+        if state is on
+            cmd = cmd + @config.commandOn
+        else
+            cmd = cmd + @config.commandOff
+        cocPlugin.sendCommand @id, cmd
         @_setState state
       )
+
+    handleReceivedCmd: (command) ->
+      len = command.length;
+      return false if len < 9
+
+      cmdid = command.substr(0,1)
+      return false if cmdid != "F";
+      
+      houseid   = command.substr(1,4);
+      deviceid  = command.substr(5,2);
+      return false if houseid != @houseid or deviceid != @deviceid
+      
+      cmd = command.substr(7, len-7);
+      if (cmd == @config.commandOn)
+        @changeStateTo on
+      else if (cmd == @config.commandOff)
+        @changeStateTo off
+
+      return true
 
 
   cocPlugin = new COCPlugin()
