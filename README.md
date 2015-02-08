@@ -16,7 +16,7 @@ To enable the COC plugin add this section to your config.json file.
 ...
 ```
 
-To use a CUL device connected to an USB port instead of the internally connect COC module, you need to set the hardware type and the serial device name.
+To use a CUL device connected to an USB port instead of an internally connected COC module, you need to set the hardware type and the serial device name.
 
 ```
 ...
@@ -35,9 +35,10 @@ to find the serial device name of the CUL.
   
 ###Add devices 
 
-The COC plugin currently defines two types of devices.  
-The COCSwitch device supports the COC generic commands for on and off. You can use it for all supported protocols.  
-The COCSwitchFS20 device is a specialized version which controls FS20 devices. It creates the needed on/off command internally.
+The COC plugin currently defines two types of devices.
+
+* The COCSwitch device supports the COC generic commands for on and off. You can use it for all supported protocols.  
+* The COCSwitchFS20 device is a specialized version which controls FS20 devices. It creates the needed on/off command internally.
 
 This is an example for the devices section in the config.json file.
 
