@@ -122,7 +122,7 @@ module.exports = (env) ->
     changeStateTo: (state) ->
       if @_state is state then return Promise.resolve true
       else return Promise.try( =>
-        if state is on then cocPlugin.sendCommand @commandOn else cocPlugin.sendCommand @commandOff
+        if state is on then cocPlugin.sendCommand @id, @commandOn else cocPlugin.sendCommand @id, @commandOff
         @_setState state
       )
 

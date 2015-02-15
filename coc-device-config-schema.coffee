@@ -15,11 +15,11 @@ module.exports = {
       commandOn:
         description: "The command string to send for on state"
         type: "string"
-        default: null
+        default: "00"
       commandOff:
         description: "The command string to send for off state"
         type: "string"
-        default: null
+        default: "00"
   }
   COCSwitchFS20: {
     title: "COCSwitchFS20 config options"
