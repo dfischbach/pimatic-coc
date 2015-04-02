@@ -42,7 +42,7 @@ module.exports = (env) ->
             configDef: deviceConfigDef[Cl.name]
             createCallback: (deviceConfig) =>
               device = new Cl(deviceConfig)
-              if Cl in [COCSwitchFS20]
+              if Cl in [COCSwitch, COCSwitchFS20]
                 @cmdReceivers.push device
               return device
           })
@@ -125,6 +125,15 @@ module.exports = (env) ->
         if state is on then cocPlugin.sendCommand @id, @commandOn else cocPlugin.sendCommand @id, @commandOff
         @_setState state
       )
+
+    handleReceivedCmd: (command) ->
+      if ( command == @commandOn )
+        @changeStateTo on
+        return true
+      else if ( command == @commandOff )
+        @changeStateTo off
+        return true
+      return false
 
 
   # COCSwitchFS20 controls FS20 devices
