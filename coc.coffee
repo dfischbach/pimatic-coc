@@ -9,6 +9,9 @@ module.exports = (env) ->
   # Require the [SerialPort] (https://github.com/voodootikigod/node-serialport)
   {SerialPort} = require 'serialport'
 
+  Gpio = env.Gpio or require('onoff').Gpio
+  Promise.promisifyAll(Gpio.prototype)
+
   _ = env.require 'lodash'
 
   # the plugin class
@@ -23,8 +26,16 @@ module.exports = (env) ->
       env.logger.info("coc: init with serial device name #{serialName}@#{config.baudrate}, hardwareType #{config.hardwareType}")
       
       if config.hardwareType is "COC"
-        env.logger.info("running cocinit.sh")
-        execSync.run("sh ./node_modules/pimatic-coc/cocinit.sh")
+        env.logger.info("init coc begin")
+        gpio17 = new Gpio 17, 'out'
+        gpio18 = new Gpio 18, 'out'
+        gpio18.writeSync(1)
+        gpio17.writeSync(0)
+        @wait(1000)
+        gpio17.writeSync(1)
+        @wait(1000)
+        env.logger.info("init coc end")
+        
 
       @cmdReceivers = [];
       @transport = new COCTransport serialName, config.baudrate, @receiveCommandCallback
@@ -58,6 +69,13 @@ module.exports = (env) ->
 
       if (!handled)
         env.logger.info "received unhandled command string: #{cmdString}"
+
+    wait: (millisec) -> 
+      date = Date.now()
+      curDate = null
+      loop
+        curDate = Date.now()
+        break if (curDate-date > millisec)
 
 
   # COCTransport handles the communication with the coc module
