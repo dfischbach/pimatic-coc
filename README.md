@@ -63,3 +63,6 @@ This is an example for the devices section in the config.json file.
 
 ```
 
+***Attention:***
+This plugin uses the onoff module, which has some issues with Raspian jessie. Check [this](https://github.com/raspberrypi/linux/issues/1117) to fix the issue.
+
