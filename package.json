@@ -11,6 +11,7 @@
     "email": "dirk@fischbachnet.de",
     "url": "http://github.com/dfischbach"
   },
+  "license": "GPL-2.0",
   "homepage": "http://github.com/dfischbach/pimatic-coc",
   "main": "coc.coffee",
   "files": [
@@ -18,7 +19,8 @@
     "README.md",
     "coc-plugin-config-schema.coffee",
     "coc-device-config-schema.coffee",
-    "cocinit.sh"
+    "cocinit.sh",
+    "LICENSE"
   ],
   "version": "0.9.0",
   "private": false,
