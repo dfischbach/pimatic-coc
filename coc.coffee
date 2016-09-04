@@ -1,13 +1,9 @@
 
 module.exports = (env) ->
 
-  convict   = env.require "convict"
   Promise   = env.require 'bluebird'
-  assert    = env.require 'cassert'
-  execSync  = require 'execSync'
-
-  # Require the [SerialPort] (https://github.com/voodootikigod/node-serialport)
-  {SerialPort} = require 'serialport'
+  serialport = require 'serialport'
+  SerialPort = serialport.SerialPort
 
   Gpio = env.Gpio or require('onoff').Gpio
   Promise.promisifyAll(Gpio.prototype)
@@ -19,13 +15,13 @@ module.exports = (env) ->
 
     @transport
 
-    init: (app, @framework, config) ->
+    init: (app, @framework, @config) ->
       env.logger.info "coc: init"
 
-      serialName = config.serialDeviceName
-      env.logger.info("coc: init with serial device name #{serialName}@#{config.baudrate}, hardwareType #{config.hardwareType}")
-      
-      if config.hardwareType is "COC"
+      serialName = @config.serialDeviceName
+      env.logger.info("coc: init with serial device name #{serialName}@#{@config.baudrate}, hardwareType #{@config.hardwareType}")
+
+      if @config.hardwareType is "COC"
         env.logger.info("init coc begin")
         gpio17 = new Gpio 17, 'out'
         gpio18 = new Gpio 18, 'out'
@@ -35,14 +31,14 @@ module.exports = (env) ->
         gpio17.writeSync(1)
         @wait(1000)
         env.logger.info("init coc end")
-        
+
 
       @cmdReceivers = [];
-      @transport = new COCTransport serialName, config.baudrate, @receiveCommandCallback
+      @transport = new COCTransport serialName, @config.baudrate, @receiveCommandCallback
 
       deviceConfigDef = require("./coc-device-config-schema")
 
-      deviceClasses = [ 
+      deviceClasses = [
         COCSwitch,
         COCSwitchFS20
       ]
@@ -58,9 +54,15 @@ module.exports = (env) ->
               return device
           })
 
+    removeCmdReceiver: (device) ->
+      env.logger.info "removeCmdReceiver #{device}"
+
+      index = @cmdReceivers.indexOf(device)
+      if index > -1
+        @cmdReceivers.splice(index, 1)
 
     sendCommand: (id, cmdString) ->
-        @transport.sendCommand id, cmdString
+      @transport.sendCommand id, cmdString
 
     receiveCommandCallback: (cmdString) =>
       for cmdReceiver in @cmdReceivers
@@ -70,7 +72,7 @@ module.exports = (env) ->
       if (!handled)
         env.logger.info "received unhandled command string: #{cmdString}"
 
-    wait: (millisec) -> 
+    wait: (millisec) ->
       date = Date.now()
       curDate = null
       loop
@@ -125,17 +127,19 @@ module.exports = (env) ->
       env.logger.debug "COCTransport: #{id} sendCommand #{cmdString}"
       @serial.write(cmdString+'\n')
 
-
   # COCSwitch is a generic switch which works with on/off command strings
   class COCSwitch extends env.devices.PowerSwitch
 
     constructor: (@config) ->
-      @id = config.id
-      @name = config.name
-      @commandOn = config.commandOn
-      @commandOff= config.commandOff
+      @id = @config.id
+      @name = @config.name
+      @commandOn = @config.commandOn
+      @commandOff= @config.commandOff
       super()
 
+    destroy: ->
+      cocPlugin.removeCmdReceiver this
+      super()
 
     changeStateTo: (state) ->
       if @_state is state then return Promise.resolve true
@@ -158,12 +162,15 @@ module.exports = (env) ->
   class COCSwitchFS20 extends env.devices.PowerSwitch
 
     constructor: (@config) ->
-      @id = config.id
-      @name = config.name
-      @houseid = config.houseid
-      @deviceid = config.deviceid
+      @id = @config.id
+      @name = @config.name
+      @houseid = @config.houseid
+      @deviceid = @config.deviceid
       super()
 
+    destroy: ->
+      cocPlugin.removeCmdReceiver this
+      super()
 
     changeStateTo: (state) ->
       if @_state is state then return Promise.resolve true
@@ -183,11 +190,11 @@ module.exports = (env) ->
 
       cmdid = command.substr(0,1)
       return false if cmdid != "F";
-      
+
       houseid   = command.substr(1,4);
       deviceid  = command.substr(5,2);
       return false if houseid != @houseid or deviceid != @deviceid
-      
+
       cmd = command.substr(7, len-7);
       if (cmd == @config.commandOn)
         @changeStateTo on

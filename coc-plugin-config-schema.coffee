@@ -13,5 +13,6 @@ module.exports = {
     hardwareType:
       doc: "The type of the hardware: COC or CUL"
       type: "string"
+      enum: ["COC", "CUL"]
       default: "COC"
 }
