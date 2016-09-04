@@ -20,16 +20,15 @@
     "coc-device-config-schema.coffee",
     "cocinit.sh"
   ],
-  "version": "0.8.5",
+  "version": "0.9.0",
   "private": false,
-  "configSchema": "coc-plugin-config-schema.coffee",  
+  "configSchema": "coc-plugin-config-schema.coffee",
   "dependencies": {
-    "onoff": "~1.0.2",
-    "serialport": "1.4.6",
-    "execSync": "1.0.1-pre"
+    "onoff": "~1.1.1",
+    "serialport": "~2.0.6"
   },
   "peerDependencies": {
-    "pimatic": "0.8.*"
+    "pimatic": "0.9.*"
   },
   "engines": {
     "node": ">0.8.x",
