@@ -211,16 +211,12 @@ module.exports = (env) ->
       @id = @config.id
       @name = @config.name
       @deviceid = @config.deviceid
-      @_contact = false
+      @_contact = true # closed
       super()
 
     destroy: ->
       cocPlugin.removeCmdReceiver this
       super()
-
-    setContactValue: (value) ->
-      assert value is true or value is false
-      @_setContact value
 
     handleReceivedCmd: (command) ->
       len = command.length;
@@ -235,10 +231,10 @@ module.exports = (env) ->
       cmd = command.substr(7, len-7);
       # window open
       if (cmd == "01" or cmd == "81")
-        @setContactValue true if @_contact is false
+        @_setContact false
       # window closed
       else if (cmd == "02" or cmd == "82")
-        @setContactValue false if @_contact is true
+        @_setContact true
 
       return true
 
