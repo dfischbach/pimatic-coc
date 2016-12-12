@@ -40,7 +40,8 @@ module.exports = (env) ->
 
       deviceClasses = [
         COCSwitch,
-        COCSwitchFS20
+        COCSwitchFS20,
+        COCDoorWindowSensorFHT80TF
       ]
 
       for Cl in deviceClasses
@@ -49,7 +50,7 @@ module.exports = (env) ->
             configDef: deviceConfigDef[Cl.name]
             createCallback: (deviceConfig) =>
               device = new Cl(deviceConfig)
-              if Cl in [COCSwitch, COCSwitchFS20]
+              if Cl in [COCSwitch, COCSwitchFS20, COCDoorWindowSensorFHT80TF]
                 @cmdReceivers.push device
               return device
           })
@@ -200,6 +201,40 @@ module.exports = (env) ->
         @changeStateTo on
       else if (cmd == @config.commandOff)
         @changeStateTo off
+
+      return true
+
+  # COCDoorWindowSensorFHT80TF controls FHT80TF devices
+  class COCDoorWindowSensorFHT80TF extends env.devices.ContactSensor
+
+    constructor: (@config) ->
+      @id = @config.id
+      @name = @config.name
+      @deviceid = @config.deviceid
+      @_contact = true # closed
+      super()
+
+    destroy: ->
+      cocPlugin.removeCmdReceiver this
+      super()
+
+    handleReceivedCmd: (command) ->
+      len = command.length;
+      return false if len < 9
+
+      cmdid = command.substr(0,1)
+      return false if cmdid != "T";
+
+      deviceid  = command.substr(1,6);
+      return false if deviceid != @deviceid
+
+      cmd = command.substr(7, len-7);
+      # window open
+      if (cmd == "01" or cmd == "81")
+        @_setContact false
+      # window closed
+      else if (cmd == "02" or cmd == "82")
+        @_setContact true
 
       return true
 

@@ -50,4 +50,21 @@ module.exports = {
         type: "string"
         default: "00"
   }
+  COCDoorWindowSensorFHT80TF: {
+    title: "COCDoorWindowSensorFHT80TF config options"
+    type: "object"
+    properties:
+      id:
+        description: "The id of a device"
+        type: "string"
+        default: "atHomeId"
+      name:
+        description: "The name of a device"
+        type: "string"
+        default: "atHomeName"
+      deviceid:
+        description: "A kind of identification"
+        type: "string"
+        default: "001122"
+  }
 }
