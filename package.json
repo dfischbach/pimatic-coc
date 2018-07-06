@@ -22,7 +22,7 @@
     "cocinit.sh",
     "LICENSE"
   ],
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": false,
   "configSchema": "coc-plugin-config-schema.coffee",
   "dependencies": {
