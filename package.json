@@ -26,8 +26,8 @@
   "private": false,
   "configSchema": "coc-plugin-config-schema.coffee",
   "dependencies": {
-    "onoff": "~1.1.1",
-    "serialport": "~2.0.6"
+    "onoff": "~3.1.0",
+    "serialport": "~6.2.1"
   },
   "peerDependencies": {
     "pimatic": "0.9.*"

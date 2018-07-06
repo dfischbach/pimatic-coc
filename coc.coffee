@@ -3,7 +3,7 @@ module.exports = (env) ->
 
   Promise   = env.require 'bluebird'
   serialport = require 'serialport'
-  SerialPort = serialport.SerialPort
+  SerialPort = require 'serialport'
 
   Gpio = env.Gpio or require('onoff').Gpio
   Promise.promisifyAll(Gpio.prototype)
@@ -89,7 +89,7 @@ module.exports = (env) ->
     constructor: (serialPortName, baudrate, @receiveCommandHandler) ->
 
       @cmdString = ""
-      @serial = new SerialPort serialPortName, baudrate: baudrate, false
+      @serial = new SerialPort serialPortName, baudRate: baudrate, false
 
       @serial.open (err) ->
         if ( err? )
